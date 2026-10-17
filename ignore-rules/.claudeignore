@@ -1,5 +1,5 @@
 # =============================================================================
-# 1. ENVIRONMENT VARIABLES & GENERIC SECRETS
+# Environment variables and generic secrets
 # =============================================================================
 .env
 .env.*
@@ -21,7 +21,7 @@ secrets.*
 *.gpg
 
 # =============================================================================
-# 2. CLOUD, INFRASTRUCTURE & SYSTEM SERVICES (AWS, GCP, ALICLOUD, AZURE, DOCKER)
+# Cloud, infrastructure, and container services (AWS, GCP, Alibaba Cloud, Azure, Docker)
 # =============================================================================
 .aws/
 .gcloud/
@@ -42,7 +42,7 @@ secrets.*
 docker-compose.override.yml
 
 # =============================================================================
-# 3. MOBILE DEVELOPMENT (ANDROID, IOS, FLUTTER, REACT NATIVE, EXPO)
+# Mobile application development (Android, iOS, Flutter, React Native, Expo)
 # =============================================================================
 *.jks
 *.keystore
@@ -77,7 +77,7 @@ dist/
 web-build/
 
 # =============================================================================
-# 4. BACKEND & WEB STACKS (MAGENTO 2, ODOO 19, GO, RUST, PYTHON, C++/WASM)
+# Backend and web frameworks (Magento, Odoo, Go, Rust, Python, C++, WebAssembly)
 # =============================================================================
 **/app/etc/env.php
 **/app/etc/config.php
@@ -122,7 +122,7 @@ test-results/
 playwright-report/
 
 # =============================================================================
-# 5. JETBRAINS IDES, FIGMA & POSTMAN ASSETS
+# IDE workspaces, Figma designs, and Postman API assets
 # =============================================================================
 .idea/**/dataSources.xml
 .idea/**/dataSources.local.xml
@@ -140,7 +140,7 @@ playwright-report/
 *.fig
 
 # =============================================================================
-# 6. PII DATA, DATABASES & LOGS
+# Personally identifiable information (PII), database dumps, and application logs
 # =============================================================================
 **/hr-recruitment-ats/CV/**
 **/CV/**

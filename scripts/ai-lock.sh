@@ -1,32 +1,62 @@
 #!/usr/bin/env bash
-# ==============================================================================
-# ai-lock.sh
-# Quickly attach AI privacy and exclusion rules to the target workspace
-# ==============================================================================
+#
+# Attaches unified AI privacy and exclusion rules to a target workspace.
+# Creates symbolic links for .claudeignore, .geminiignore, and .aiexclude.
 
 set -euo pipefail
 
-TARGET_DIR="${1:-$(pwd)}"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-SOURCE_FILE="${REPO_DIR}/ignore-rules/.claudeignore"
+#######################################
+# Resolves the master ignore file location.
+# Globals:
+#   HOME
+# Arguments:
+#   Repository directory path.
+# Outputs:
+#   Path to valid master ignore file.
+#######################################
+resolve_master_ignore() {
+  local repo_dir="$1"
+  local candidate="${repo_dir}/ignore-rules/.claudeignore"
 
-if [[ ! -f "${SOURCE_FILE}" ]]; then
-  if [[ -f "$HOME/src/.claudeignore" ]]; then
-    SOURCE_FILE="$HOME/src/.claudeignore"
-  else
-    echo -e "\033[0;31m[ERROR]\033[0m Master ignore rule file not found at ${SOURCE_FILE}" >&2
-    exit 1
+  if [[ -f "${candidate}" ]]; then
+    echo "${candidate}"
+    return 0
   fi
-fi
 
-echo -e "\033[0;34m[INFO]\033[0m Applying AI privacy ignore locks to: ${TARGET_DIR}"
+  if [[ -f "${HOME}/src/.claudeignore" ]]; then
+    echo "${HOME}/src/.claudeignore"
+    return 0
+  fi
 
-ln -sf "${SOURCE_FILE}" "${TARGET_DIR}/.claudeignore"
-ln -sf "${SOURCE_FILE}" "${TARGET_DIR}/.geminiignore"
-ln -sf "${SOURCE_FILE}" "${TARGET_DIR}/.aiexclude"
+  echo "Master ignore rule file not found at ${candidate} or ${HOME}/src/.claudeignore" >&2
+  return 1
+}
 
-echo -e "\033[0;32m[OK]\033[0m Workspace privacy lock established successfully:"
-echo "     -> ${TARGET_DIR}/.claudeignore"
-echo "     -> ${TARGET_DIR}/.geminiignore"
-echo "     -> ${TARGET_DIR}/.aiexclude"
+#######################################
+# Main routine to link ignore files into the target directory.
+# Arguments:
+#   Target directory path (optional, defaults to current working directory).
+#######################################
+main() {
+  local target_dir="${1:-$(pwd)}"
+  local script_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  local repo_dir
+  repo_dir="$(cd "${script_dir}/.." && pwd)"
+
+  local source_file
+  source_file="$(resolve_master_ignore "${repo_dir}")"
+
+  echo "Applying AI privacy ignore locks to: ${target_dir}"
+
+  ln -sf "${source_file}" "${target_dir}/.claudeignore"
+  ln -sf "${source_file}" "${target_dir}/.geminiignore"
+  ln -sf "${source_file}" "${target_dir}/.aiexclude"
+
+  echo "Workspace privacy lock established successfully:"
+  echo "  -> ${target_dir}/.claudeignore"
+  echo "  -> ${target_dir}/.geminiignore"
+  echo "  -> ${target_dir}/.aiexclude"
+}
+
+main "$@"

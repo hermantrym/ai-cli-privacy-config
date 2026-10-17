@@ -1,65 +1,77 @@
 #!/usr/bin/env zsh
-# ==============================================================================
-# AI CLI Privacy & Security Shell Integration
-# macOS / Zsh environment helpers for Claude Code & Antigravity CLI
-# ==============================================================================
+#
+# Shell integration helpers for AI CLI privacy and data governance.
+# Provides commands to enforce workspace lockouts and inspect sensitive files.
 
-# Default repository and ignore source path
-export AI_PRIVACY_ROOT="${AI_PRIVACY_ROOT:-$HOME/src/ai-cli-privacy-config}"
+# Resolves root directory of privacy repository and fallback paths.
+export AI_PRIVACY_ROOT="${AI_PRIVACY_ROOT:-${HOME}/src/ai-cli-privacy-config}"
 export AI_IGNORE_SOURCE="${AI_PRIVACY_ROOT}/ignore-rules/.claudeignore"
 
-# Helper alias/function to lock down current project workspace by creating
-# standardized AI ignore symlinks (.claudeignore, .geminiignore, .aiexclude)
+#######################################
+# Hardens current or target workspace by symlinking master ignore definitions.
+# Globals:
+#   AI_IGNORE_SOURCE
+#   HOME
+# Arguments:
+#   Target directory path (optional, defaults to current directory).
+# Returns:
+#   Returns zero on success, non-zero on failure.
+#######################################
 ai-lock() {
   local target_dir="${1:-$(pwd)}"
   local source_file="${AI_IGNORE_SOURCE}"
 
-  if [[ ! -f "$source_file" ]]; then
-    # Fallback to local source in ~/src if exists
-    if [[ -f "$HOME/src/.claudeignore" ]]; then
-      source_file="$HOME/src/.claudeignore"
+  if [[ ! -f "${source_file}" ]]; then
+    if [[ -f "${HOME}/src/.claudeignore" ]]; then
+      source_file="${HOME}/src/.claudeignore"
     else
-      echo "\033[0;31m[ERROR]\033[0m Master ignore rule file not found at $source_file" >&2
+      echo "Master ignore rule file not found at ${source_file}" >&2
       return 1
     fi
   fi
 
-  echo "\033[0;34m[INFO]\033[0m Enforcing AI privacy locks in: $target_dir"
-  ln -sf "$source_file" "$target_dir/.claudeignore" && \
-  ln -sf "$source_file" "$target_dir/.geminiignore" && \
-  ln -sf "$source_file" "$target_dir/.aiexclude"
+  echo "Enforcing AI privacy locks in: ${target_dir}"
+  ln -sf "${source_file}" "${target_dir}/.claudeignore" && \
+  ln -sf "${source_file}" "${target_dir}/.geminiignore" && \
+  ln -sf "${source_file}" "${target_dir}/.aiexclude"
 
   if [[ $? -eq 0 ]]; then
-    echo "\033[0;32m[SUCCESS]\033[0m AI security ignore files successfully linked:"
+    echo "AI security ignore files successfully linked:"
     echo "  -> .claudeignore"
     echo "  -> .geminiignore"
     echo "  -> .aiexclude"
   else
-    echo "\033[0;31m[ERROR]\033[0m Failed to create symlinks." >&2
+    echo "Failed to create symlinks." >&2
     return 1
   fi
 }
 
-# Helper function to audit current repository for potential sensitive leaks
+#######################################
+# Audits current workspace directory for common exposed secret patterns.
+# Arguments:
+#   None
+# Returns:
+#   Returns zero upon completing inspection.
+#######################################
 ai-audit() {
-  echo "\033[0;34m[AUDIT]\033[0m Inspecting current workspace for sensitive files..."
+  echo "Inspecting current workspace for sensitive files..."
   local found=0
   local patterns=(".env*" "*.pem" "*.key" "*.p12" "*.pfx" "*.p8" "*.jks" "*.keystore" "*service-account*.json" "*secret*" "*credential*")
 
   for pattern in "${patterns[@]}"; do
     local matches
-    matches=$(find . -maxdepth 3 -name "$pattern" ! -path "*/node_modules/*" ! -path "*/.git/*" ! -path "*/vendor/*" 2>/dev/null)
-    if [[ -n "$matches" ]]; then
-      echo "\033[0;33m[WARN]\033[0m Potential secret files detected matching '$pattern':"
-      echo "$matches" | sed 's/^/  - /'
+    matches=$(find . -maxdepth 3 -name "${pattern}" ! -path "*/node_modules/*" ! -path "*/.git/*" ! -path "*/vendor/*" 2>/dev/null)
+    if [[ -n "${matches}" ]]; then
+      echo "Potential secret files detected matching '${pattern}':"
+      echo "${matches}" | sed 's/^/  - /'
       found=$((found + 1))
     fi
   done
 
   if [[ ! -f ".claudeignore" && ! -f ".geminiignore" ]]; then
-    echo "\033[0;31m[ALERT]\033[0m No AI ignore file (.claudeignore / .geminiignore) found in this folder!"
+    echo "No AI ignore file (.claudeignore / .geminiignore) found in this folder!"
     echo "Run 'ai-lock' to protect this workspace."
-  elif [[ $found -eq 0 ]]; then
-    echo "\033[0;32m[PASS]\033[0m No obvious unignored secrets detected in workspace root (depth 3)."
+  elif [[ "${found}" -eq 0 ]]; then
+    echo "No obvious unignored secrets detected in workspace root (depth 3)."
   fi
 }

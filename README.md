@@ -15,10 +15,10 @@ An enterprise-grade, defense-in-depth privacy and data governance framework for 
 - [Threat Model & Defense-in-Depth Architecture](#threat-model--defense-in-depth-architecture)
 - [Repository Structure](#repository-structure)
 - [Core Protection Layers](#core-protection-layers)
-  - [1. Ingestion & Context Exclusion Rules](#1-ingestion--context-exclusion-rules)
-  - [2. File System Access Control Lists (ACLs)](#2-file-system-access-control-lists-acls)
-  - [3. Shell Execution & Reconnaissance Mitigation](#3-shell-execution--reconnaissance-mitigation)
-  - [4. Process Sandboxing & Trust Boundaries](#4-process-sandboxing--trust-boundaries)
+  - [Ingestion & Context Exclusion Rules](#ingestion--context-exclusion-rules)
+  - [File System Access Control Lists (ACLs)](#file-system-access-control-lists-acls)
+  - [Shell Execution & Reconnaissance Mitigation](#shell-execution--reconnaissance-mitigation)
+  - [Process Sandboxing & Trust Boundaries](#process-sandboxing--trust-boundaries)
 - [Quick Start & Installation](#quick-start--installation)
   - [Automated Setup](#automated-setup)
   - [Manual Configuration](#manual-configuration)
@@ -63,10 +63,10 @@ flowchart TD
     L4 -.->|Violated| Drop4["Sandbox Trapped"]
 ```
 
-1. **Layer 1: Context Exclusion**: Ignore rules prevent sensitive patterns from entering the agent's file indexing and search engines.
-2. **Layer 2: Granular File System ACLs**: Explicit client permission configurations (`settings.json`) deny file reads and writes to sensitive glob patterns, private user directories, and system keychains.
-3. **Layer 3: Shell Hardening**: Prohibits execution of environment dumping (`env`, `set`), credential retrieval (`security`, `gcloud auth`, `aws configure`), and interactive SSH/SCP commands.
-4. **Layer 4: Sandboxing & Workspace Trust Isolation**: Enables strict macOS terminal sandboxing (`enableTerminalSandbox: true`), confining autonomous execution strictly to pre-declared trusted workspaces.
+- **Layer 1: Context Exclusion**: Ignore rules prevent sensitive patterns from entering the agent's file indexing and search engines.
+- **Layer 2: Granular File System ACLs**: Explicit client permission configurations (`settings.json`) deny file reads and writes to sensitive glob patterns, private user directories, and system keychains.
+- **Layer 3: Shell Hardening**: Prohibits execution of environment dumping (`env`, `set`), credential retrieval (`security`, `gcloud auth`, `aws configure`), and interactive SSH/SCP commands.
+- **Layer 4: Sandboxing & Workspace Trust Isolation**: Enables strict macOS terminal sandboxing (`enableTerminalSandbox: true`), confining autonomous execution strictly to pre-declared trusted workspaces.
 
 ---
 
@@ -96,7 +96,7 @@ ai-cli-privacy-config/
 
 ## Core Protection Layers
 
-### 1. Ingestion & Context Exclusion Rules
+### Ingestion & Context Exclusion Rules
 
 Located in `ignore-rules/.claudeignore`, this master ruleset categorizes and isolates critical files across standard modern enterprise stacks:
 
@@ -109,7 +109,7 @@ Located in `ignore-rules/.claudeignore`, this master ruleset categorizes and iso
 | **IDE & API Tooling** | JetBrains data source configs (`dataSources.xml`, `dataSources.local.xml`), Postman environments (`*environment*.json`, `*secret*.json`) |
 | **Databases, PII & Logs** | Applicant CVs/Resumes (`**/CV/**`), SQL dumps (`*.sql`, `*.dump`, `*.sqlite3`), raw server logs (`*.log`) |
 
-### 2. File System Access Control Lists (ACLs)
+### File System Access Control Lists (ACLs)
 
 Both `claude/settings.json` and `antigravity/settings.json` enforce non-bypassable `permissions.deny` rules:
 
@@ -123,14 +123,14 @@ Both `claude/settings.json` and `antigravity/settings.json` enforce non-bypassab
   "Read(~/.config/gcloud/**)",
   "Read(~/.docker/**)",
   "Read(~/.zsh_history)",
-  "Read(/Users/herman/Library/Keychains/**)",
-  "Read(/Users/herman/Library/Application Support/JetBrains/**)"
+  "Read(~/Library/Keychains/**)",
+  "Read(~/Library/Application Support/JetBrains/**)"
 ]
 ```
 
 These rules prevent both reading and editing, ensuring that even if an agent calculates a relative path to bypass directory restrictions, client-side permission enforcement denies the system call before disk IO occurs.
 
-### 3. Shell Execution & Reconnaissance Mitigation
+### Shell Execution & Reconnaissance Mitigation
 
 Malicious actors or hallucinatory loops often attempt to read secrets stored in environment memory. The following commands are explicitly barred from terminal execution:
 
@@ -140,7 +140,7 @@ Malicious actors or hallucinatory loops often attempt to read secrets stored in 
 - **Credential inspection**: `*gcloud auth*`, `*aws configure*`, `*az account*`, `*aliyun configure*`
 - **Direct file concatenation attempts**: `*cat *.env*`, `*cat *secrets*`, `*cat *~/.ssh*`, `*cat *~/.aws*`
 
-### 4. Process Sandboxing & Trust Boundaries
+### Process Sandboxing & Trust Boundaries
 
 Antigravity CLI is explicitly configured with:
 ```json
@@ -148,7 +148,7 @@ Antigravity CLI is explicitly configured with:
   "enableTerminalSandbox": true,
   "allowNonWorkspaceAccess": true,
   "trustedWorkspaces": [
-    "/Users/herman/src"
+    "~/src"
   ]
 }
 ```
@@ -163,7 +163,7 @@ All autonomous commands run isolated inside macOS sandbox policies unless explic
 Run the included automated installer. It creates timestamped backups of your current configurations and links the master ignore rules:
 
 ```bash
-cd /Users/herman/src/ai-cli-privacy-config
+cd ~/src/ai-cli-privacy-config
 ./scripts/setup.sh
 ```
 
@@ -171,7 +171,7 @@ Next, add shell helpers to your `~/.zshrc`:
 
 ```zsh
 # Load AI CLI Privacy Helpers
-source "/Users/herman/src/ai-cli-privacy-config/shell/ai-privacy.zsh"
+source "${HOME}/src/ai-cli-privacy-config/shell/ai-privacy.zsh"
 ```
 
 Reload your shell:
@@ -184,26 +184,26 @@ source ~/.zshrc
 
 If you prefer applying configurations selectively:
 
-1. **Deploy Ignore Rules**:
-   ```bash
-   cp /Users/herman/src/ai-cli-privacy-config/ignore-rules/.claudeignore /Users/herman/src/.claudeignore
-   ln -sf /Users/herman/src/.claudeignore /Users/herman/src/.geminiignore
-   ln -sf /Users/herman/src/.claudeignore /Users/herman/src/.aiexclude
-   ```
+- **Deploy Ignore Rules**:
+  ```bash
+  cp ~/src/ai-cli-privacy-config/ignore-rules/.claudeignore ~/src/.claudeignore
+  ln -sf ~/src/.claudeignore ~/src/.geminiignore
+  ln -sf ~/src/.claudeignore ~/src/.aiexclude
+  ```
 
-2. **Claude Code Configuration**:
-   ```bash
-   mkdir -p ~/.claude
-   cp /Users/herman/src/ai-cli-privacy-config/claude/settings.json ~/.claude/settings.json
-   chmod 600 ~/.claude/settings.json
-   ```
+- **Claude Code Configuration**:
+  ```bash
+  mkdir -p ~/.claude
+  cp ~/src/ai-cli-privacy-config/claude/settings.json ~/.claude/settings.json
+  chmod 600 ~/.claude/settings.json
+  ```
 
-3. **Antigravity CLI Configuration**:
-   ```bash
-   mkdir -p ~/.gemini/antigravity-cli
-   cp /Users/herman/src/ai-cli-privacy-config/antigravity/settings.json ~/.gemini/antigravity-cli/settings.json
-   chmod 600 ~/.gemini/antigravity-cli/settings.json
-   ```
+- **Antigravity CLI Configuration**:
+  ```bash
+  mkdir -p ~/.gemini/antigravity-cli
+  cp ~/src/ai-cli-privacy-config/antigravity/settings.json ~/.gemini/antigravity-cli/settings.json
+  chmod 600 ~/.gemini/antigravity-cli/settings.json
+  ```
 
 ---
 
@@ -221,9 +221,9 @@ ai-lock
 This immediately creates symlinks to the centralized master ignore policy:
 ```
 my-project/
-├── .aiexclude -> /Users/herman/src/ai-cli-privacy-config/ignore-rules/.claudeignore
-├── .claudeignore -> /Users/herman/src/ai-cli-privacy-config/ignore-rules/.claudeignore
-└── .geminiignore -> /Users/herman/src/ai-cli-privacy-config/ignore-rules/.claudeignore
+├── .aiexclude -> ~/src/ai-cli-privacy-config/ignore-rules/.claudeignore
+├── .claudeignore -> ~/src/ai-cli-privacy-config/ignore-rules/.claudeignore
+└── .geminiignore -> ~/src/ai-cli-privacy-config/ignore-rules/.claudeignore
 ```
 
 Any future update made to the master rules in `ai-cli-privacy-config` is automatically inherited across all locked repositories without manual synchronization.
@@ -238,8 +238,8 @@ ai-audit
 
 Output:
 ```
-[AUDIT] Inspecting current workspace for sensitive files...
-[PASS] No obvious unignored secrets detected in workspace root (depth 3).
+Inspecting current workspace for sensitive files...
+No obvious unignored secrets detected in workspace root (depth 3).
 ```
 
 ---
@@ -248,18 +248,18 @@ Output:
 
 Verify that the security controls are active:
 
-1. **Test Ignore Rules**:
-   Create a dummy file: `touch test-secret.key .env.test`.
-   Ask Claude or Antigravity: *"List files in this directory."*
-   Verify that neither `.env.test` nor `test-secret.key` appear in the output.
+- **Test Ignore Rules**:
+  Create a dummy file: `touch test-secret.key .env.test`.
+  Ask Claude or Antigravity: *"List files in this directory."*
+  Verify that neither `.env.test` nor `test-secret.key` appear in the output.
 
-2. **Test Command Denials**:
-   Ask the AI CLI: *"Print out the active environment variables using `env`."*
-   The assistant will refuse or the client will block the invocation with a permission error.
+- **Test Command Denials**:
+  Ask the AI CLI: *"Print out the active environment variables using `env`."*
+  The assistant will refuse or the client will block the invocation with a permission error.
 
-3. **Test Path Restrictions**:
-   Ask the AI CLI: *"Read the contents of ~/.ssh/id_rsa or ~/.zsh_history."*
-   The client will intercept the request and output an access denial.
+- **Test Path Restrictions**:
+  Ask the AI CLI: *"Read the contents of ~/.ssh/id_rsa or ~/.zsh_history."*
+  The client will intercept the request and output an access denial.
 
 ---
 
@@ -267,12 +267,12 @@ Verify that the security controls are active:
 
 When adapting this configuration for company devices or team distribution:
 
-1. **Replace Absolute Paths with Placeholders**:
-   In `claude/settings.json` and `antigravity/settings.json`, replace `/Users/herman` with `$HOME` or generic paths where supported by the client schema.
-2. **Add Organization-Specific Secrets**:
-   If your organization uses proprietary key naming conventions (e.g., `*corp-auth*.json`, `*internal-token*`), append them under Section 1 of `ignore-rules/.claudeignore`.
-3. **Database Safeguards**:
-   Add rules for internal database directories and replica dumps under Section 6 of `ignore-rules/.claudeignore`.
+- **Replace Absolute Paths with Placeholders**:
+  In `claude/settings.json` and `antigravity/settings.json`, customize user paths using `~` or `${HOME}` according to your environment.
+- **Add Organization-Specific Secrets**:
+  If your organization uses proprietary key naming conventions (e.g., `*corp-auth*.json`, `*internal-token*`), append them under the secrets section of `ignore-rules/.claudeignore`.
+- **Database Safeguards**:
+  Add rules for internal database directories and replica dumps under the databases and PII section of `ignore-rules/.claudeignore`.
 
 ---
 

@@ -1,65 +1,115 @@
 #!/usr/bin/env bash
-# ==============================================================================
-# setup.sh - Installer & Synchronizer for AI CLI Privacy Configurations
-# ==============================================================================
+#
+# Installer and synchronizer for AI CLI privacy configurations.
+# Deploys hardened settings for Anthropic Claude Code and Google Antigravity CLI.
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+readonly TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 
-echo "=========================================================="
-echo "  AI CLI Privacy Configuration Installer (macOS)"
-echo "  Targeting Claude Code & Antigravity CLI"
-echo "=========================================================="
+#######################################
+# Creates destination directories if they do not already exist.
+# Globals:
+#   HOME
+# Arguments:
+#   None
+#######################################
+create_required_directories() {
+  mkdir -p "${HOME}/.claude"
+  mkdir -p "${HOME}/.gemini/antigravity-cli"
+  mkdir -p "${HOME}/src"
+}
 
-# 1. Ensure directories exist
-mkdir -p "$HOME/.claude"
-mkdir -p "$HOME/.gemini/antigravity-cli"
-mkdir -p "$HOME/src"
+#######################################
+# Deploys unified master ignore rules and establishes symlinks.
+# Globals:
+#   HOME
+#   REPO_ROOT
+# Arguments:
+#   None
+#######################################
+deploy_master_ignore_rules() {
+  echo "Deploying master ignore rules..."
+  cp "${REPO_ROOT}/ignore-rules/.claudeignore" "${HOME}/src/.claudeignore"
+  ln -sf "${HOME}/src/.claudeignore" "${HOME}/src/.geminiignore"
+  ln -sf "${HOME}/src/.claudeignore" "${HOME}/src/.aiexclude"
+  echo "  ✓ Installed: ${HOME}/src/.claudeignore"
+  echo "  ✓ Linked: ${HOME}/src/.geminiignore"
+  echo "  ✓ Linked: ${HOME}/src/.aiexclude"
+}
 
-# 2. Master Ignore Rules deployment
-echo ""
-echo "[Step 1/3] Deploying Master Ignore Rules..."
-cp "${REPO_ROOT}/ignore-rules/.claudeignore" "$HOME/src/.claudeignore"
-ln -sf "$HOME/src/.claudeignore" "$HOME/src/.geminiignore"
-ln -sf "$HOME/src/.claudeignore" "$HOME/src/.aiexclude"
-echo "  ✓ Installed: $HOME/src/.claudeignore"
-echo "  ✓ Linked: $HOME/src/.geminiignore"
-echo "  ✓ Linked: $HOME/src/.aiexclude"
+#######################################
+# Configures Claude Code privacy rules and creates backup.
+# Globals:
+#   HOME
+#   REPO_ROOT
+#   TIMESTAMP
+# Arguments:
+#   None
+#######################################
+configure_claude_settings() {
+  echo "Configuring Claude Code privacy settings..."
+  local claude_dest="${HOME}/.claude/settings.json"
+  if [[ -f "${claude_dest}" ]]; then
+    echo "  Backing up existing Claude settings to ${claude_dest}.bak_${TIMESTAMP}"
+    cp "${claude_dest}" "${claude_dest}.bak_${TIMESTAMP}"
+  fi
+  cp "${REPO_ROOT}/claude/settings.json" "${claude_dest}"
+  chmod 600 "${claude_dest}"
+  echo "  ✓ Applied: ${claude_dest} (permissions: 600)"
+}
 
-# 3. Claude Code Privacy Settings
-echo ""
-echo "[Step 2/3] Configuring Claude Code Privacy Settings..."
-CLAUDE_DEST="$HOME/.claude/settings.json"
-if [[ -f "$CLAUDE_DEST" ]]; then
-  echo "  Backing up existing Claude settings to $CLAUDE_DEST.bak_${TIMESTAMP}"
-  cp "$CLAUDE_DEST" "$CLAUDE_DEST.bak_${TIMESTAMP}"
-fi
-cp "${REPO_ROOT}/claude/settings.json" "$CLAUDE_DEST"
-chmod 600 "$CLAUDE_DEST"
-echo "  ✓ Applied: $CLAUDE_DEST (permissions: 600)"
+#######################################
+# Configures Antigravity CLI privacy rules and creates backup.
+# Globals:
+#   HOME
+#   REPO_ROOT
+#   TIMESTAMP
+# Arguments:
+#   None
+#######################################
+configure_antigravity_settings() {
+  echo "Configuring Antigravity CLI privacy settings..."
+  local antigravity_dest="${HOME}/.gemini/antigravity-cli/settings.json"
+  if [[ -f "${antigravity_dest}" ]]; then
+    echo "  Backing up existing Antigravity settings to ${antigravity_dest}.bak_${TIMESTAMP}"
+    cp "${antigravity_dest}" "${antigravity_dest}.bak_${TIMESTAMP}"
+  fi
+  cp "${REPO_ROOT}/antigravity/settings.json" "${antigravity_dest}"
+  chmod 600 "${antigravity_dest}"
+  echo "  ✓ Applied: ${antigravity_dest} (permissions: 600)"
+}
 
-# 4. Antigravity CLI Privacy Settings
-echo ""
-echo "[Step 3/3] Configuring Antigravity CLI Privacy Settings..."
-ANTIGRAVITY_DEST="$HOME/.gemini/antigravity-cli/settings.json"
-if [[ -f "$ANTIGRAVITY_DEST" ]]; then
-  echo "  Backing up existing Antigravity settings to $ANTIGRAVITY_DEST.bak_${TIMESTAMP}"
-  cp "$ANTIGRAVITY_DEST" "$ANTIGRAVITY_DEST.bak_${TIMESTAMP}"
-fi
-cp "${REPO_ROOT}/antigravity/settings.json" "$ANTIGRAVITY_DEST"
-chmod 600 "$ANTIGRAVITY_DEST"
-echo "  ✓ Applied: $ANTIGRAVITY_DEST (permissions: 600)"
+#######################################
+# Main routine executing sequential setup tasks.
+# Arguments:
+#   Script arguments passed through.
+#######################################
+main() {
+  echo "=========================================================="
+  echo "  AI CLI Privacy Configuration Installer (macOS)"
+  echo "  Targeting Claude Code & Antigravity CLI"
+  echo "=========================================================="
+  echo ""
 
-# 5. Shell Integration Notice
-echo ""
-echo "=========================================================="
-echo "  Setup Complete!"
-echo "=========================================================="
-echo "To enable 'ai-lock' and 'ai-audit' in your terminal, add"
-echo "the following line to your ~/.zshrc or ~/.bash_profile:"
-echo ""
-echo "  source \"${REPO_ROOT}/shell/ai-privacy.zsh\""
-echo ""
+  create_required_directories
+  deploy_master_ignore_rules
+  echo ""
+  configure_claude_settings
+  echo ""
+  configure_antigravity_settings
+
+  echo ""
+  echo "=========================================================="
+  echo "  Setup Complete"
+  echo "=========================================================="
+  echo "To enable 'ai-lock' and 'ai-audit' in your terminal, add"
+  echo "the following line to your ~/.zshrc or ~/.bash_profile:"
+  echo ""
+  echo "  source \"\${HOME}/src/ai-cli-privacy-config/shell/ai-privacy.zsh\""
+  echo ""
+}
+
+main "$@"
