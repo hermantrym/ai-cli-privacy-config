@@ -1,0 +1,39 @@
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon\r\r
+._*
+.Spotlight-V100
+.Trashes
+
+# Editor & IDE Directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary & Log Files
+*.log
+*.tmp
+*.bak
+*.bak_*
+
+# Node & Package Manager
+node_modules/
+.npm
+.yarn/
+
+# Ensure secret files never accidentally get committed here
+.env
+.env.*
+!.env.example
+secrets.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.p8
+*.jks
+*.keystore

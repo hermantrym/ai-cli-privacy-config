@@ -1,0 +1,158 @@
+# =============================================================================
+# 1. ENVIRONMENT VARIABLES & GENERIC SECRETS
+# =============================================================================
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+secrets.*
+*secret*
+*credential*
+*.pem
+*.key
+*.crt
+*.cer
+*.der
+*.p12
+*.pfx
+*.p8
+*.asc
+*.gpg
+
+# =============================================================================
+# 2. CLOUD, INFRASTRUCTURE & SYSTEM SERVICES (AWS, GCP, ALICLOUD, AZURE, DOCKER)
+# =============================================================================
+.aws/
+.gcloud/
+.aliyun/
+.alicloud/
+.azure/
+.kube/
+*service-account*.json
+*gcp-key*.json
+*gcloud*.json
+*alicloud*.json
+*azure*.json
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfvars
+!*.tfvars.example
+docker-compose.override.yml
+
+# =============================================================================
+# 3. MOBILE DEVELOPMENT (ANDROID, IOS, FLUTTER, REACT NATIVE, EXPO)
+# =============================================================================
+*.jks
+*.keystore
+key.properties
+local.properties
+**/app/release/**
+**/build/**
+.gradle/
+*.mobileprovision
+*.provisionprofile
+AuthKey_*.p8
+Deliverfile
+Gymfile
+Matchfile
+Appfile
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+**/Pods/**
+**/DerivedData/**
+google-services.json
+GoogleService-Info.plist
+*wallet-key*.json
+*issuer*.json
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# =============================================================================
+# 4. BACKEND & WEB STACKS (MAGENTO 2, ODOO 19, GO, RUST, PYTHON, C++/WASM)
+# =============================================================================
+**/app/etc/env.php
+**/app/etc/config.php
+**/auth.json
+**/var/cache/**
+**/var/page_cache/**
+**/var/session/**
+**/var/log/**
+**/var/report/**
+**/var/tmp/**
+**/var/view_preprocessed/**
+**/pub/media/**
+**/pub/static/**
+**/generated/code/**
+**/generated/metadata/**
+**/vendor/**
+**/odoo19/config/odoo.conf
+**/odoo.conf
+.odoorc
+**/__pycache__/**
+*.py[cod]
+*$py.class
+.venv/
+venv/
+**/target/**
+**/cmake-build-debug/**
+**/cmake-build-release/**
+**/CMakeFiles/**
+*.wasm
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+**/node_modules/**
+.next/
+.nx/
+.nuxt/
+.turbo/
+coverage/
+test-results/
+playwright-report/
+
+# =============================================================================
+# 5. JETBRAINS IDES, FIGMA & POSTMAN ASSETS
+# =============================================================================
+.idea/**/dataSources.xml
+.idea/**/dataSources.local.xml
+.idea/**/dataSources/
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries/
+.idea/**/shelf/
+.idea/**/httpRequests/
+*.iml
+**/postman/*environment*.json
+**/postman/*secret*.json
+*.postman_environment.json
+*.fig
+
+# =============================================================================
+# 6. PII DATA, DATABASES & LOGS
+# =============================================================================
+**/hr-recruitment-ats/CV/**
+**/CV/**
+**/database/icapos_dev/**
+**/database/visculo-db/**
+**/database/visculo-db-dev/**
+*.sql
+*.sql.gz
+*.dump
+*.bak
+*.sqlite
+*.sqlite3
+*.db
+*.log
+logs/
